@@ -476,22 +476,24 @@ const hookCommentNetwork = (onPayload: (payload: PagingPayload) => void): (() =>
 		return res;
 	};
 
+	type XHRWithUrl = XMLHttpRequest & { __zhUrl?: string };
 	const origOpen = XMLHttpRequest.prototype.open;
 	const origSend = XMLHttpRequest.prototype.send;
-	XMLHttpRequest.prototype.open = function () {
-		(this as XMLHttpRequest & { __zhUrl?: string }).__zhUrl = String(arguments[1] || "");
+	XMLHttpRequest.prototype.open = function (this: XMLHttpRequest, method: string, url: string | URL) {
+		(this as XHRWithUrl).__zhUrl = String(url);
 		return origOpen.apply(this, arguments as unknown as Parameters<typeof origOpen>);
-	} as typeof XMLHttpRequest.prototype.open;
-	XMLHttpRequest.prototype.send = function () {
-		this.addEventListener("load", () => {
+	};
+	XMLHttpRequest.prototype.send = function (this: XMLHttpRequest, body?: Document | XMLHttpRequestBodyInit | null) {
+		const xhr = this as XHRWithUrl;
+		xhr.addEventListener("load", () => {
 			try {
-				const url = (this as XMLHttpRequest & { __zhUrl?: string }).__zhUrl || "";
-				if (isCommentUrl(url)) {
-					onPayload(parseJsonKeepLongIds(this.responseText) as PagingPayload);
+				const hookedUrl = xhr.__zhUrl || "";
+				if (isCommentUrl(hookedUrl)) {
+					onPayload(parseJsonKeepLongIds(xhr.responseText) as PagingPayload);
 				}
 			} catch { }
 		});
-		return origSend.apply(this, arguments as unknown as Parameters<typeof origSend>);
+		return origSend.apply(xhr, arguments as unknown as Parameters<typeof origSend>);
 	};
 
 	return () => {

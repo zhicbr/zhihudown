@@ -9,6 +9,6 @@
 
         "sourceMap": true,
         // "inlineSourceMap": true,
-        "moduleResolution": "node"
+        "moduleResolution": "bundler"
     }
 }
