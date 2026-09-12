@@ -1,0 +1,14 @@
+node_modules/
+dist/
+docs/
+original/
+code.js
+.playwright-mcp/
+.tmp-upstream/
+
+*.tgz
+*.log
+
+scripts/split-userscript.mjs
+scripts/extract-app.mjs
+scripts/compare-src-to-bundle.mjs
